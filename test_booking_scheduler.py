@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import unittest
 
-from booking_scheduler import BookingScheduler
+from booking_scheduler import BookingScheduler, TestableScheduler
 from schedule import Customer, Schedule
 from test_communication import TestableSmsSender, TestableMailSender
 
@@ -73,10 +73,19 @@ class BookingSchedulerTest(unittest.TestCase):
         self.assertEqual(self.testable_mail_sender.get_count_send_mail_is_called(), 1)
 
     def test_현재날짜가_일요일인_경우_예약불가_예외처리(self):
-        pass
+        self.booking_scheduler = TestableScheduler(CAPACITY_PER_HOUR, is_sunday=True)
+
+        with self.assertRaises(ValueError):
+            schedule = Schedule(ON_THE_HOUR, UNDER_CAPACITY, CUSTOMER_WITH_MAIL)
+            self.booking_scheduler.add_schedule(schedule)
+            self.fail()
 
     def test_현재날짜가_일요일이_아닌경우_예약가능(self):
-        pass
+        self.booking_scheduler = TestableScheduler(CAPACITY_PER_HOUR)
+        schedule = Schedule(ON_THE_HOUR, UNDER_CAPACITY, CUSTOMER_WITH_MAIL)
+        self.booking_scheduler.add_schedule(schedule)
+
+        self.assertTrue(self.booking_scheduler.has_schedule(schedule))
 
 
 if __name__ == '__main__':
